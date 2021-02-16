@@ -19,7 +19,7 @@ import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
-public class AuthService {
+public class AuthService implements UserDetailsService{
     private final UserDao userDao;
     @Value("${si-auth.expireTime}")
     long expireTime;
@@ -44,16 +44,23 @@ public class AuthService {
     }
 
     public void updatePassword(String username, String password) {
-        if(password.matches("[a]"))
+        if(password.matches("[a]")) {
+
+        }
     }
 
     public Boolean isValidCredentials(String username, String password) {
         User user = userDao.getUser(username);
         if(user != null) {
             return user.getUsername().equals(username)
-                    && new BCryptPasswordEncoder().encode(password).equals(user.getPassword())
-                    && user.getLastUpdateDatetime().isAfter(LocalDateTime.now().plusSeconds(expireTime));
+                    && new BCryptPasswordEncoder().encode(password).equals(user.getPassword());
         }
+        return false;
+    }
+
+    public boolean isCredentialsExpired(String username) {
+        User user = userDao.getUser(username);
+        return user.getLastUpdateDatetime().isAfter(LocalDateTime.now().plusSeconds(expireTime));
     }
 
     public boolean tokenIsValid(String username, String token) {
@@ -67,5 +74,10 @@ public class AuthService {
         if(userMailToken.getLastUpdateDateTime().isAfter(LocalDateTime.now().plusSeconds(expireTime))) {
             userDao.updateValidTokenUrl(username, UUID.randomUUID().toString(), LocalDateTime.now());
         }
+    }
+
+    @Override
+    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+        return null;
     }
 }

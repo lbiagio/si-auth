@@ -2,6 +2,7 @@ package com.biagio.siauth.configuration;
 
 import com.biagio.siauth.service.AuthService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.authentication.AccountExpiredException;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -22,15 +23,17 @@ public class AuthProvider implements AuthenticationProvider {
         String password = authentication.getCredentials().toString();
 
 
-        if(authService.isValidCredentials(username, password))
-            return authentication;
+        if (authService.isValidCredentials(username, password))
+            if (authService.isCredentialsExpired(username))
+                return authentication;
+            else
+                throw new AccountExpiredException("Your password has expired. Please reset it");
         else
-            if(authService.)
-            return BadCredentialsException
+            throw new BadCredentialsException("Credentials are invalid");
     }
 
     @Override
-    public boolean supports(Class<?> aClass) {
-        return false;
+    public boolean supports(Class<?> auth) {
+        return auth.equals(UsernamePasswordAuthenticationToken.class);
     }
 }
